@@ -2,10 +2,12 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const chalk = require("chalk");
 const app = express();
+const date = require(__dirname + "/date");
 
 app.set("view engine", "ejs");
 
 let items = [];
+let workItems = [];
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.listen(3000, () => {
@@ -13,18 +15,34 @@ app.listen(3000, () => {
 });
 
 app.get("/", (req, res) => {
-  let date = new Date();
-  let options = {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  };
-  let presentDay = date.toLocaleDateString("en-US", options);
-  res.render("list", { day: presentDay, newItem: items });
+  let presentDay = date.getDate();
+
+  res.render("list", { listTitle: presentDay, newItem: items });
 });
 
 app.post("/", (req, res) => {
+  console.log(req.body);
   let item = req.body.todoTitle;
-  items.push(item);
-  res.redirect("/");
+
+  if (req.body.list === "Work") {
+    workItems.push(item);
+    res.redirect("/work");
+  } else {
+    items.push(item);
+    res.redirect("/");
+  }
+});
+
+app.get("/work", (req, res) => {
+  res.render("list", { listTitle: "Work", newItem: workItems });
+});
+
+app.post("/work", (req, res) => {
+  let item = req.body.todoTitle;
+  workItems.push(item);
+  res.redirect("/work");
+});
+
+app.get("/about", (req, res) => {
+  res.render("about");
 });
